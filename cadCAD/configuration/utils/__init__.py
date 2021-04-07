@@ -4,9 +4,10 @@ from copy import deepcopy
 from functools import reduce
 from funcy import curry
 import pandas as pd
+import numpy as np
 
 from cadCAD.configuration.utils.depreciationHandler import sanitize_partial_state_updates
-from cadCAD.utils import dict_filter, contains_type, flatten_tabulated_dict, tabulate_dict
+from cadCAD.utils import dict_filter, contains_type, flatten_tabulated_dict, tabulate_dict, re_assign_modules
 
 
 class TensorFieldReport:
@@ -25,8 +26,25 @@ class TensorFieldReport:
         return df
 
 
+def filter_jobs(experiment, client_modules: list, server_module: str, model_ids: list):
+    experiment = re_assign_modules(experiment, server_module)
+    experiment.serialize_jobs(server_module)  # < if 'app.main' inputed, trigger ser
+    renamed_client_modules = []
+    for module in client_modules:
+        renamed_client_modules.append(module.__name__)
+
+    if set(model_ids).issubset(experiment.model_ids):
+        filtered_jobs = {id: experiment.model_ser_job_map[id] for id in model_ids}
+        filtered_jobs_lens = {k: len(v) for k, v in filtered_jobs.items()}
+        return filtered_jobs, filtered_jobs_lens, renamed_client_modules, experiment
+    else:
+        missing_ids = np.setdiff1d(model_ids, experiment.model_ids)
+        raise Exception(f"Error: model_ids {missing_ids} missing from Experiment()")
+
+
 def configs_as_spec(configs):
     sim_ids = list(map(lambda x: x.simulation_id, configs))
+    # sim_ids = [config.simulation_id for config in configs]
     sim_id_counts = list(Counter(sim_ids).values())
     IDed_configs = list(zip(sim_ids, configs))
     del sim_ids
@@ -68,6 +86,8 @@ def configs_as_dataframe(configs):
 def state_update(y, x):
     return lambda var_dict, sub_step, sL, s, _input, **kwargs: (y, x)
 
+def policy(y, x):
+    return lambda _g, step, sL, s, **kwargs: {y: x}
 
 def bound_norm_random(rng, low, high):
     res = rng.normal((high+low)/2, (high-low)/6)
@@ -162,6 +182,9 @@ def config_sim(d):
         return flatten_tabulated_dict(tabulate_dict(d))
 
     if "M" in d:
+        M_lengths = len(list(set({key: len(value) for key, value in d["M"].items()}.values())))
+        if M_lengths > 2:
+            raise Exception('`M` values require up to a maximum of 2 distinct lengths')
         return [{"N": d["N"], "T": d["T"], "M": M} for M in process_variables(d["M"])]
     else:
         d["M"] = [{}]
@@ -224,13 +247,13 @@ def state_sweep_filter(raw_exogenous_states):
 def sweep_partial_states(_type, in_config):
     configs = []
     # filtered_mech_states
-    filtered_partial_states = partial_state_sweep_filter(_type, in_config.partial_state_updates)
+    filtered_partial_states = partial_state_sweep_filter(_type, in_config.partial_state_update_blocks)
     if len(filtered_partial_states) > 0:
         for partial_state, state_dict in filtered_partial_states.items():
             for state, state_funcs in state_dict.items():
                 for f in state_funcs:
                     config = deepcopy(in_config)
-                    config.partial_state_updates[partial_state][_type][state] = f
+                    config.partial_state_update_blocks[partial_state][_type][state] = f
                     configs.append(config)
                     del config
     else:

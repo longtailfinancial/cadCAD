@@ -1,4 +1,6 @@
+import codecs
 from functools import reduce
+from pprint import pprint
 from typing import Dict, List
 from collections import defaultdict
 from itertools import product
@@ -153,3 +155,24 @@ def curry_pot(f, *argv):
         return f(argv[0], argv[1], argv[2])
     else:
         raise TypeError('curry_pot() needs 3 or 4 positional arguments')
+
+
+def re_assign_modules(exp, new_name: str = 'app.main'):
+    for job in exp.configs:
+        job.__module__ = new_name
+
+        for psub in job.partial_state_update_blocks:
+            policies = list(psub['policies'].values())
+            variables = list(psub['states'].values())
+            for (policy, state) in list(zip(policies, variables)):
+                policy.__module__ = new_name
+                state.__module__ = new_name
+    return exp
+
+
+# json re_formatter
+def re_encode(pkl_obj):
+    return codecs.encode(pkl_obj, "base64").decode()
+#
+# def decode(pkl_obj):
+#     return codecs.decode(pkl_obj.encode(), "base64")

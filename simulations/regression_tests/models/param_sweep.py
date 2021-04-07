@@ -1,11 +1,10 @@
-import pprint
+from pprint import pprint
 from typing import Dict, List, Any
 
 # from cadCAD.configuration import append_configs
 from cadCAD.configuration.utils import env_trigger, var_substep_trigger, config_sim, psub_list
-from testing.experiments import exp_param_sweep
+from simulations.regression_tests.experiments import param_sweep_exp, combo_exp
 
-pp = pprint.PrettyPrinter(indent=4)
 
 def some_function(x):
     return x
@@ -81,10 +80,23 @@ sim_config = config_sim(
         "M": g, # Optional
     }
 )
+# print()
+# pprint(sim_config)
+# exit()
 
 # New Convention
 partial_state_update_blocks = psub_list(psu_block, psu_steps)
-exp_param_sweep.append_configs(
+param_sweep_exp.append_configs(
+    model_id='param_sweep',
+    sim_configs=sim_config,
+    initial_state=genesis_states,
+    env_processes=env_process,
+    partial_state_update_blocks=partial_state_update_blocks
+)
+
+combo_exp.append_configs(
+    user_id='user_c',
+    model_id='param_sweep',
     sim_configs=sim_config,
     initial_state=genesis_states,
     env_processes=env_process,

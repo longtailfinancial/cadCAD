@@ -1,7 +1,6 @@
 import numpy as np
 from datetime import timedelta
 
-from cadCAD import configs
 from cadCAD.configuration.utils import bound_norm_random, config_sim, env_trigger, time_step
 from simulations.regression_tests.experiments import config2_exp
 
@@ -139,7 +138,6 @@ sim_config_dict = {
 
 sim_config = config_sim(sim_config_dict)
 config2_exp.append_configs(
-    config_list=configs,
     user_id='user_b',
     sim_configs=sim_config,
     initial_state=genesis_states,

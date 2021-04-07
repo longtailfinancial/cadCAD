@@ -1,13 +1,8 @@
-from copy import deepcopy
-from pprint import pprint
-
 import numpy as np
 from datetime import timedelta
 
-# from cadCAD import configs
-from cadCAD.configuration import Experiment
 from cadCAD.configuration.utils import bound_norm_random, config_sim, time_step, env_trigger
-from simulations.regression_tests.experiments import multi_exp
+from simulations.regression_tests.experiments import multi_exp, combo_exp
 
 seeds = {
     'z': np.random.RandomState(1),
@@ -155,6 +150,17 @@ sim_config = config_sim(sim_config_dict)
 multi_exp.append_configs(
     # config_list=configs,
     user_id='user_a',
+    model_id='sys_model_1',
+    sim_configs=sim_config,
+    initial_state=genesis_states,
+    env_processes=env_processes,
+    partial_state_update_blocks=partial_state_update_block,
+    policy_ops=[lambda a, b: a + b]
+)
+
+combo_exp.append_configs(
+    user_id='user_a',
+    model_id='sys_model_1',
     sim_configs=sim_config,
     initial_state=genesis_states,
     env_processes=env_processes,

@@ -4,7 +4,6 @@ from tabulate import tabulate
 from cadCAD.configuration.utils import config_sim
 from cadCAD.engine import ExecutionMode, ExecutionContext, Executor
 from cadCAD.configuration import Experiment
-from cadCAD import configs
 
 # Policies per Mechanism
 def p1m1(_g, step, sH, s):
@@ -86,7 +85,7 @@ exp.append_configs(
 
 exec_mode = ExecutionMode()
 local_proc_ctx = ExecutionContext(context=exec_mode.local_mode)
-run = Executor(exec_context=local_proc_ctx, configs=configs)
+run = Executor(exec_context=local_proc_ctx, configs=exp.configs)
 
 raw_result, tensor_field, sessions = run.execute()
 result = pd.DataFrame(raw_result)
