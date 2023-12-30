@@ -1,4 +1,21 @@
-from typing import NamedTuple, Tuple, Dict, Union, List
+from typing import Callable, Dict, List, NamedTuple, Tuple, Union
+
+StateVariable = object
+Parameter = Tuple[object]
+
+Params = Dict[str, object]
+State = Dict[str, object]
+Signal = Dict[str, object]
+History = List[List[State]]
+Substep = int
+VariableUpdate = Tuple[str, object]
+
+Policy = Callable[[Params, Substep, History, State], Signal]
+StateUpdate = Callable[[Params, Substep, History, State, Signal], VariableUpdate]
+
+StateUpdateBlock = Dict[str, object]
+TimestepBlock = List[StateUpdateBlock]
+
 
 class InitialValue(NamedTuple):
     value: object
@@ -11,8 +28,9 @@ class Param(NamedTuple):
 
 
 class ParamSweep(NamedTuple):
-    value: List[object]
+    value: Tuple[object]
     type: type
+
 
 InitialState = Dict[str, InitialValue]
 SystemParameters = Dict[str, Union[Param, ParamSweep]]
