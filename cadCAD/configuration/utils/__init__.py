@@ -184,7 +184,7 @@ def config_sim(config_dict: ConfigurationDict):
 
             if distinct_param_value_lengths > 2:
                 raise Exception('When sweeping, `M` list lengths should either be 1 and/or equal. More than two distinct lengths are not allowed')
-            elif (distinct_param_value_lengths == 1) and (0 in param_values_length_set):
+            elif (distinct_param_value_lengths == 1):
                 return config_dict
             elif (1 in param_values_length_set):
                 return [{**config_dict, "M": M} 
